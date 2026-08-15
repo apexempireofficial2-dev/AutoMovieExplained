@@ -1,1 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Movie Explained</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
 
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>🎬 Auto Movie Explained</h1>
+        <p>Movie upload karo aur Hindi explained video automatically banao</p>
+    </header>
+
+    <div class="card">
+
+        <label class="upload-box" for="movieInput">
+            <div class="upload-icon">📁</div>
+            <h2>Upload Movie</h2>
+            <p>MP4, MKV, MOV supported</p>
+            <input type="file" id="movieInput" accept="video/*">
+        </label>
+
+        <div id="fileInfo" class="file-info"></div>
+
+        <div class="settings">
+
+            <div class="setting">
+                <label>🇮🇳 Language</label>
+                <select id="language">
+                    <option value="hi">Hindi</option>
+                </select>
+            </div>
+
+            <div class="setting">
+                <label>🎤 Voice</label>
+                <select id="voice">
+                    <option value="natural">Hindi Natural</option>
+                    <option value="male">Hindi Male</option>
+                    <option value="female">Hindi Female</option>
+                </select>
+            </div>
+
+            <div class="setting">
+                <label>🎥 Quality</label>
+                <select id="quality">
+                    <option value="1080">1080p</option>
+                    <option value="720">720p</option>
+                    <option value="480">480p</option>
+                </select>
+            </div>
+
+            <div class="setting">
+                <label>🎞️ FPS</label>
+                <select id="fps">
+                    <option value="30">30 FPS</option>
+                    <option value="60">60 FPS</option>
+                </select>
+            </div>
+
+        </div>
+
+        <div class="options">
+
+            <label>
+                <input type="checkbox" checked id="sceneCut">
+                ✂️ Auto Scene Selection
+            </label>
+
+            <label>
+                <input type="checkbox" checked id="story">
+                🧠 Auto Story Script
+            </label>
+
+            <label>
+                <input type="checkbox" checked id="hindiVoice">
+                🎤 Hindi Voice
+            </label>
+
+            <label>
+                <input type="checkbox" checked id="subtitles">
+                📝 Hindi Subtitles
+            </label>
+
+        </div>
+
+        <button id="startBtn">
+            🚀 CREATE EXPLAINED VIDEO
+        </button>
+
+        <div id="progressSection" class="progress-section">
+
+            <div class="progress-header">
+                <span id="statusText">Waiting...</span>
+                <span id="progressPercent">0%</span>
+            </div>
+
+            <div class="progress-bar">
+                <div id="progressBar"></div>
+            </div>
+
+        </div>
+
+        <div id="result"></div>
+
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>
