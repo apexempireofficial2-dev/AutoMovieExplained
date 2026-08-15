@@ -9,6 +9,9 @@ const statusText = document.getElementById("statusText");
 const result = document.getElementById("result");
 
 
+let selectedFilename = null;
+
+
 movieInput.addEventListener("change", () => {
 
     const file = movieInput.files[0];
@@ -24,7 +27,7 @@ movieInput.addEventListener("change", () => {
 
     fileInfo.innerHTML = `
         🎬 <strong>${file.name}</strong><br>
-        Size: ${sizeGB.toFixed(2)} GB
+        📦 Size: ${sizeGB.toFixed(2)} GB
     `;
 });
 
@@ -41,17 +44,23 @@ startBtn.addEventListener("click", async () => {
     startBtn.disabled = true;
 
     progressSection.style.display = "block";
-    statusText.textContent = "📤 Movie upload ho rahi hai...";
-    progressPercent.textContent = "0%";
+
     progressBar.style.width = "0%";
+    progressPercent.textContent = "0%";
+
+    statusText.textContent =
+        "📤 Movie upload ho rahi hai...";
+
     result.innerHTML = "";
 
     const formData = new FormData();
+
     formData.append("movie", file);
 
     const xhr = new XMLHttpRequest();
 
     xhr.open("POST", "/upload", true);
+
 
     xhr.upload.addEventListener("progress", (event) => {
 
@@ -61,56 +70,160 @@ startBtn.addEventListener("click", async () => {
                 (event.loaded / event.total) * 100
             );
 
-            progressBar.style.width = percent + "%";
-            progressPercent.textContent = percent + "%";
+            progressBar.style.width =
+                percent + "%";
+
+            progressPercent.textContent =
+                percent + "%";
         }
+
     });
 
 
-    xhr.onload = () => {
+    xhr.onload = async () => {
 
-        startBtn.disabled = false;
+        if (xhr.status !== 200) {
 
-        if (xhr.status === 200) {
+            startBtn.disabled = false;
 
-            const data = JSON.parse(xhr.responseText);
+            statusText.textContent =
+                "❌ Upload failed";
 
-            if (data.success) {
+            alert("Upload failed.");
 
-                progressBar.style.width = "100%";
-                progressPercent.textContent = "100%";
-                statusText.textContent = "✅ Movie uploaded";
-
-                result.innerHTML = `
-                    <div class="file-info" style="display:block;">
-                        ✅ Movie successfully Termux mein save ho gayi.<br><br>
-                        🎬 ${data.filename}<br>
-                        📦 ${(data.size / (1024 * 1024 * 1024)).toFixed(2)} GB
-                    </div>
-                `;
-
-            } else {
-
-                statusText.textContent = "❌ Upload failed";
-                alert(data.error);
-            }
-
-        } else {
-
-            statusText.textContent = "❌ Upload failed";
-            alert("Upload mein error aa gaya.");
+            return;
         }
+
+
+        const data = JSON.parse(
+            xhr.responseText
+        );
+
+
+        if (!data.success) {
+
+            startBtn.disabled = false;
+
+            alert(data.error);
+
+            return;
+        }
+
+
+        selectedFilename = data.filename;
+
+
+        progressBar.style.width = "100%";
+        progressPercent.textContent = "100%";
+
+        statusText.textContent =
+            "🎬 Movie uploaded — scenes detect ho rahe hain...";
+
+
+        await detectScenes();
+
     };
 
 
     xhr.onerror = () => {
 
         startBtn.disabled = false;
-        statusText.textContent = "❌ Connection error";
 
-        alert("Termux server se connection nahi ho raha.");
+        statusText.textContent =
+            "❌ Connection error";
+
+        alert(
+            "Termux server se connection nahi ho raha."
+        );
+
     };
 
 
     xhr.send(formData);
+
 });
+
+
+async function detectScenes() {
+
+    try {
+
+        progressBar.style.width = "100%";
+
+        progressPercent.textContent = "100%";
+
+        statusText.textContent =
+            "✂️ Movie ke scenes detect ho rahe hain...";
+
+
+        const response = await fetch(
+            "/detect-scenes",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+                body: JSON.stringify({
+                    filename: selectedFilename
+                })
+            }
+        );
+
+
+        const data = await response.json();
+
+
+        if (!data.success) {
+
+            throw new Error(data.error);
+
+        }
+
+
+        statusText.textContent =
+            "✅ Scene detection complete";
+
+
+        result.innerHTML = `
+            <div class="file-info"
+                 style="display:block;">
+
+                <strong>
+                    🎬 Scene Detection Complete
+                </strong>
+
+                <br><br>
+
+                ✂️ Scenes detected:
+                <strong>${data.scene_count}</strong>
+
+                <br><br>
+
+                🧠 Next step:
+                AI important scenes select karega.
+
+            </div>
+        `;
+
+
+    } catch (error) {
+
+        statusText.textContent =
+            "❌ Scene detection failed";
+
+        result.innerHTML = `
+            <div class="file-info"
+                 style="display:block;">
+
+                ❌ ${error.message}
+
+            </div>
+        `;
+
+    }
+
+
+    startBtn.disabled = false;
+
+}
